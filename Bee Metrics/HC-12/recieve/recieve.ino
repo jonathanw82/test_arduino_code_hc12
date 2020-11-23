@@ -1,19 +1,25 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial mySerial(2, 3); //RX, TX
+const byte led = 13,
+input =0;
+
 void setup() {
   Serial.begin(9600);
-  pinMode(LED_BUILTIN, OUTPUT);
   Serial.println("Booted!");
+  mySerial.begin(9600);
+  pinMode(led, OUTPUT);
+  digitalWrite (led, false);
+  
 
 }
 
 void loop() {
-  if(Serial.available() > 0){
-    Serial.println("Got Serial");
-    String input = Serial.readString();
-    if(input == "Hello World"){
-      Serial.println("Recieved");
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(500);
-      digitalWrite(LED_BUILTIN, LOW);
-      }
-    }
+  if(mySerial.available() > 0){
+    String input = mySerial.readString();
+    Serial.print(input);
+    digitalWrite (led, true);
+    
+  };
+
 }
