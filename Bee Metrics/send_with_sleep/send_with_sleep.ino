@@ -1,0 +1,96 @@
+#include "Arduino.h"
+#include <avr/sleep.h>
+#include <avr/wdt.h>
+#include "DHT.h"
+#include <SoftwareSerial.h>
+
+SoftwareSerial mySerial(2, 3); //RX, TX
+
+//-------------- Declare the temp humid sensor -----------------------
+
+#define DHTPIN 8        // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT11   // DHT 11
+DHT dht(DHTPIN, DHTTYPE);
+int hum;
+int temp;
+
+//-------------- Declare the Battery voltage sensor ------------------
+
+int batteryVoltageValue;
+float Vout = 0.00;
+float Vin = 0.00;
+float R1 = 100000.00; // resistance of R1 (100K)
+float R2 = 10000.00; // resistance of R2 (10K)
+
+volatile char sleepCnt = 8;  // makes the arduino sleep for ex amount of seconds 8 max.
+char sleepDelay = 0;  // makes the arduino sleep for ex amount of seconds 8 max.
+bool wake = false;    // Initialy set wake false
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Millis statment declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unsigned long currentTime;
+unsigned long previousTime = 0;
+
+int connectionCount = 0;
+char serialGo;              // read the serial port if the correct caracter is recieved start sending data.
+bool sendData = false;
+
+void setup() {
+  dht.begin();
+  Serial.begin(9600);
+  mySerial.begin(9600);
+  pinMode(batteryVoltageValue, INPUT);
+}
+
+void loop() {
+  
+if(sleepDelay < 1 && wake == false){
+  sleepDelay++;
+  Sleeping();
+ }
+ else{
+  sleepDelay = 0;
+  wake = true;
+  
+  battvoltage();                              // Read the Battery voltage
+  float h = dht.readHumidity();               // Read Humidity
+  float t = dht.readTemperature();            // Read temperature as Celsius
+  float frequency = 200.00;                   // Read the sound frequency
+  currentTime = millis();
+  establishContact();                         // on Wake Establish a connection by sending capital A when the recerver gets the A it sends B.
+
+
+  serialGo = mySerial.read();
+
+  if (sendData == true) {
+    while (mySerial.available() >= 0)
+    {
+      Serial.println("I am sending data to the reciever");
+      for (int i = 0; i < 2; i++) {
+        Serial.println("Sending Data to reciever");
+        mySerial.print('<');
+        mySerial.print("Humidity:");
+        mySerial.print(',');
+        mySerial.print("Temperature:");
+        mySerial.print(',');
+        mySerial.print("Sound Frequency:");
+        mySerial.print(',');
+        mySerial.print("Battery Voltage:");
+        mySerial.print(',');
+        mySerial.print(h);
+        mySerial.print(',');
+        mySerial.print(t);
+        mySerial.print(',');
+        mySerial.print(frequency);
+        mySerial.print(',');
+        mySerial.print(Vin);
+        mySerial.print('>');
+        delay(1000);
+      }
+      sendData = false;
+      wake = false;
+      break;
+     }
+      Sleeping();
+  }
+ }
+}
