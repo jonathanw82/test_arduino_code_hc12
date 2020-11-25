@@ -8,11 +8,9 @@ SoftwareSerial mySerial(2, 3); //RX, TX
 
 //-------------- Declare the temp humid sensor -----------------------
 
-#define DHTPIN 8        // Digital pin connected to the DHT sensor
-#define DHTTYPE DHT11   // DHT 11
+#define DHTPIN 8                          // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT11                     // DHT 11
 DHT dht(DHTPIN, DHTTYPE);
-int hum;
-int temp;
 
 //-------------- Declare the Battery voltage sensor ------------------
 
@@ -26,13 +24,16 @@ volatile char sleepCnt = 8;  // makes the arduino sleep for ex amount of seconds
 char sleepDelay = 0;  // makes the arduino sleep for ex amount of seconds 8 max.
 bool wake = false;    // Initialy set wake false
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Millis statment declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~ Millis statment declarations ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 unsigned long currentTime;
 unsigned long previousTime = 0;
 
-int connectionCount = 0;
+//------------ General variables ---------------------------------------
+int connectionCount = 0;    
 char serialGo;              // read the serial port if the correct caracter is recieved start sending data.
-bool sendData = false;
+bool sendData = false;      // Failsafe to stop data being sent at the wrong time.
+float frequency;
 
 void setup() {
   dht.begin();
@@ -43,18 +44,18 @@ void setup() {
 
 void loop() {
   
-if(sleepDelay < 1 && wake == false){
+if(sleepDelay < 1 && wake == false){         // Sleep delay is to extend the sleep period past the usual 8 seconds. 
   sleepDelay++;
   Sleeping();
  }
  else{
-  sleepDelay = 0;
-  wake = true;
+  sleepDelay = 0;                             // Reset the sleep delay to zero
+  wake = true;                                // make wake true
   
   battvoltage();                              // Read the Battery voltage
   float h = dht.readHumidity();               // Read Humidity
   float t = dht.readTemperature();            // Read temperature as Celsius
-  float frequency = 200.00;                   // Read the sound frequency
+  soundFreq();                                // Read the sound frequency
   currentTime = millis();
   establishContact();                         // on Wake Establish a connection by sending capital A when the recerver gets the A it sends B.
 
