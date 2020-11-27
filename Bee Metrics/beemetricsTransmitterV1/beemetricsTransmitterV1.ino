@@ -14,6 +14,8 @@ SoftwareSerial mySerial(2, 3); //RX, TX
 #define DHTPIN 8                          // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11                     // DHT 11
 DHT dht(DHTPIN, DHTTYPE);
+float t;
+float h;
 
 //-------------- Declare the Battery voltage sensor ------------------
 
@@ -36,8 +38,8 @@ double frequency;
 
 //-------------- Declare sleep wake varaibales ------------------------
 
-volatile char sleepCnt = 8;  // makes the arduino sleep for ex amount of seconds 8 max.
-char sleepDelay = 0;  // makes the arduino sleep for ex amount of seconds 8 max.
+volatile char sleepCnt = 2;  // makes the arduino sleep for ex amount of seconds 8 max.
+volatile char sleepDelay = 0;  // makes the arduino sleep for ex amount of seconds 8 max.
 bool wake = false;    // Initialy set wake false
 
 //---------------- Millis statment declarations ------------------------
@@ -50,35 +52,38 @@ unsigned long previousTime = 0;
 int connectionCount = 0;    
 char serialGo;              // read the serial port if the correct caracter is recieved start sending data.
 bool sendData = false;      // Failsafe to stop data being sent at the wrong time.
+const int statusLED = 7;    // output pin for the LED
 
 void setup() {
   dht.begin();
   Serial.begin(9600);
   mySerial.begin(9600);
+  pinMode(statusLED, OUTPUT);
   pinMode(batteryVoltageValue, INPUT);
   samplingPeriod = round(1000000*(1.0/SAMPLING_FREQUENCY));  // Period in microseconds
 }
 
 void loop() {
-  
-if(sleepDelay < 1 && wake == false){         // Sleep delay is to extend the sleep period past the usual 8 seconds. 
-  sleepDelay++;
-  Sleeping();
- }
- else{
-  sleepDelay = 0;                             // Reset the sleep delay to zero
-  wake = true;                                // make wake true
   currentTime = millis();
   soundFreq();                                // Read the sound frequency
   battvoltage();                              // Read the Battery voltage
-  float h = dht.readHumidity();               // Read Humidity
-  float t = dht.readTemperature();            // Read temperature as Celsius
+  h = dht.readHumidity();               // Read Humidity
+  t = dht.readTemperature();            // Read temperature as Celsius
+ 
+if(sleepDelay <= 1 && wake == false){         // Sleep delay is to extend the sleep period past the usual 8 seconds. 
+  sleepDelay++;
+  Sleeping();
+ }
+ else if(sleepDelay > 1  && wake == false){
+  //mySerial.begin(9600);
+  wake = true;                                // make wake true
+  sleepDelay = 0;                             // Reset the sleep delay to zero
   establishContact();                         // on Wake Establish a connection by sending capital A when the recerver gets the A it sends B.
-
+ }
+  
   if (sendData == true) {
     while (mySerial.available() >= 0)
     {
-      Serial.println("I am sending data to the reciever");
       for (int i = 0; i < 2; i++) {
         Serial.println("Sending Data to reciever");
         mySerial.print('<');
@@ -102,9 +107,9 @@ if(sleepDelay < 1 && wake == false){         // Sleep delay is to extend the sle
       }
       sendData = false;
       wake = false;
+    //  mySerial.end();
       break;
      }
       Sleeping();
   }
  }
-}
