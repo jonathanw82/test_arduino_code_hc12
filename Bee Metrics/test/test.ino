@@ -38,7 +38,7 @@ double frequency;
 
 //-------------- Declare sleep wake varaibales ------------------------
 
-volatile char sleepCnt = 2;  // makes the arduino sleep for ex amount of seconds 8 max.
+volatile char sleepCnt = 8;  // makes the arduino sleep for ex amount of seconds 8 max.
 volatile char sleepDelay = 0;  // makes the arduino sleep for ex amount of seconds 8 max.
 bool wake = false;    // Initialy set wake false
 
@@ -74,11 +74,11 @@ void loop() {
   serialGo = mySerial.read();
   currentTime = millis();
 
-  if (sleepDelay <= 2 && wake == false) {       // Sleep delay is to extend the sleep period past the usual 8 seconds.
+  if (sleepDelay <= 8 && wake == false) {       // Sleep delay is to extend the sleep period past the usual 8 seconds.
     sleepDelay++;
     Sleeping();
   }
-  else if (sleepDelay > 2  && wake == false) {
+  else if (sleepDelay > 8  && wake == false) {
     digitalWrite(powerPin, HIGH);
     wake = true;                                // make wake true
     sleepDelay = 0;                             // Reset the sleep delay to zero

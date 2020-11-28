@@ -16,7 +16,7 @@ void Sleeping() {
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     sleep_enable();
 
-  while (sleepCnt < 2) {
+  while (sleepCnt < 8) {
     // Turn of Brown Out Detection (low voltage). This is automatically re-enabled upon timer interrupt
     sleep_bod_disable();
 
