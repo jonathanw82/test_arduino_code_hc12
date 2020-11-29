@@ -15,9 +15,21 @@ Quote form the doc ( Swarming is indicated by an increase in the power spectral 
 
 Credits
 
-Voltage metering, https://create.arduino.cc/projecthub/next-tech-lab/voltmeter-using-arduino-00e7d1
+Voltage metering, 
+https://create.arduino.cc/projecthub/next-tech-lab/voltmeter-using-arduino-00e7d1
 
 
+Sound Frequency counter,
+https://www.youtube.com/watch?v=wbeV0J30LGQ
+
+
+Info on Sound frequency,
 https://www.researchgate.net/publication/229224190_Monitoring_of_swarming_sounds_in_bee_hives_for_early_detection_of_the_swarming_period
-
 http://www.beehacker.com/wp/?page_id=103
+
+
+Arduino Sleep Cycle,
+https://github.com/RalphBacon/Arduino-Deep-Sleep 
+
+Arduino Sleep wake from serial interupt
+https://arduino.stackexchange.com/questions/13167/put-atmega328-in-very-deep-sleep-and-listen-to-serial

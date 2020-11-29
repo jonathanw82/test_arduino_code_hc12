@@ -1,73 +1,37 @@
 void Sleeping() {
 
-  // Disable the ADC (Analog to digital converter, pins A0 [14] to A5 [19])
-  static byte prevADCSRA = ADCSRA;
+  static byte prevADCSRA = ADCSRA;            // Disable the Analog to digital converter, pins A0 to A5.
   ADCSRA = 0;
-
-  /* Set the type of sleep mode we want. Can be one of (in order of power saving):
-
-     SLEEP_MODE_IDLE (Timer 0 will wake up every millisecond to keep millis running)
-     SLEEP_MODE_ADC
-     SLEEP_MODE_PWR_SAVE (TIMER 2 keeps running)
-     SLEEP_MODE_EXT_STANDBY
-     SLEEP_MODE_STANDBY (Oscillator keeps running, makes for faster wake-up)
-     SLEEP_MODE_PWR_DOWN (Deep sleep)
-  */
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    sleep_enable();
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);        // Set the type of sleep to full power down.
+  sleep_enable();                             // Enable the sleep cycle.
 
   while (sleepCnt < 2) {
-    // Turn of Brown Out Detection (low voltage). This is automatically re-enabled upon timer interrupt
-    sleep_bod_disable();
-
-    // Ensure we can wake up again by first disabling interrupts (temporarily) so
-    // the wakeISR does not run before we are asleep and then prevent interrupts,
-    // and then defining the ISR (Interrupt Service Routine) to run when poked awake by the timer
-    noInterrupts();
-
+    sleep_bod_disable();                      // Turn of Brown Out Detection (low voltage). This is automatically re-enabled upon timer interrupt.
+    noInterrupts();                           // Ensure we can wake up again by first disabling interrupts temporarily.
+    
     // clear various "reset" flags
-    MCUSR = 0;  // allow changes, disable reset
-    WDTCSR = bit (WDCE) | bit(WDE); // set interrupt mode and an interval
+    MCUSR = 0;                                // allow changes, disable reset
+    WDTCSR = bit (WDCE) | bit(WDE);           // set interrupt mode and an interval
     WDTCSR = bit (WDIE) | bit(WDP3) | bit(WDP1) | bit(WDP0);    // set WDIE, and 1 second delay
-    wdt_reset();
-
-    // Send a message just to show we are about to sleep
-    led();
-    Serial.println("Good night!");
-    Serial.flush();
-
-    // Allow interrupts now
-    interrupts();
-
-    // And enter sleep mode as set above
-    sleep_cpu();
+    wdt_reset();                              // Reset the watch dog timer.
+    led();                                    // Flash the status led.
+    Serial.println("Good night!");            // Send a message just to show we are about to sleep.
+    Serial.flush();                           // Empty the serial output buffer.
+    interrupts();                             // Allow interrupts now.
+    sleep_cpu();                              // Enter sleep mode as set above.
   }
 
-  // --------------------------------------------------------
-  // �Controller is now asleep until woken up by an interrupt
-  // --------------------------------------------------------
+  // ---------------------------------------------------------
+  //  Controller is now asleep until woken up by an interrupt
+  // ---------------------------------------------------------
 
-  // Prevent sleep mode, so we don't enter it again, except deliberately, by code
-  sleep_disable();
+  sleep_disable();                            // Prevent sleep mode, so we don't enter it again, except deliberately, by code.
+  Serial.println("I'm awake!");               // Wakes up at this point when timer wakes up and tells us its awake.
+  sleepCnt = 0;                               // Reset sleep counter.
+  ADCSRA = prevADCSRA;                        // Re-enable Analog to digital converter.
+}
 
-  // Wakes up at this point when timer wakes up �C
-    Serial.println("I'm awake!");
-
-  // Reset sleep counter
-  sleepCnt = 0;
-
-  // Re-enable ADC if it was previously running
-  ADCSRA = prevADCSRA;
-  }
-
-  // When WatchDog timer causes �C to wake it comes here
-  ISR (WDT_vect) {
-
-  // Turn off watchdog, we don't want it to do anything (like resetting this sketch)
-  wdt_disable();
-
-  // Increment the WDT interrupt count
-  sleepCnt++;
-
-  // Now we continue running the main Loop() just after we went to sleep
+ISR (WDT_vect) {                              // When WatchDog timer causes the Controller to wake it comes here
+  wdt_disable();                              // Turn off watchdog, we don't want it to do anything at this time.
+  sleepCnt++;                                 // Increment the WDT interrupt count.
 }
